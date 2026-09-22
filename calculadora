@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora de reservas — Check-in Brasil</title>
+<style>
+  :root{--petroleo:#2F4B55; --sage:#7F9B8D; --cream:#EFE8DD; --marron:#503530; --terracota:#BC9A7A;}
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif; background:var(--cream); min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px;}
+  .card{background:#fff; border-radius:16px; box-shadow:0 8px 30px rgba(47,75,85,0.15); padding:32px 28px; width:100%; max-width:380px;}
+  h1{color:var(--petroleo); font-size:20px; margin-bottom:4px; text-align:center;}
+  p.sub{color:#8a8a85; font-size:12.5px; text-align:center; margin-bottom:26px;}
+  label{display:block; font-size:12px; font-weight:600; color:var(--marron); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px; margin-top:16px;}
+  label:first-of-type{margin-top:0;}
+  input{width:100%; padding:12px 14px; border:1.5px solid #e0dccf; border-radius:10px; font-size:15px; color:var(--petroleo); background:var(--cream);}
+  input:focus{outline:none; border-color:var(--sage);}
+  .result{margin-top:26px; background:var(--petroleo); border-radius:12px; padding:20px; text-align:center; color:#fff;}
+  .result .nights{font-size:13px; color:#cfe0da; margin-bottom:4px;}
+  .result .nights b{font-size:20px; color:#fff;}
+  .result .total-label{font-size:11px; text-transform:uppercase; letter-spacing:1px; color:#cfe0da; margin-top:14px;}
+  .result .total{font-size:32px; font-weight:700; margin-top:2px;}
+  .result.empty{background:#e8e4da; color:#a39d8c;}
+  .result.empty .total{color:#a39d8c; font-size:15px; font-weight:500;}
+  .footer{text-align:center; margin-top:20px; font-size:10.5px; color:#b5ad9c;}
+</style>
+</head>
+<body>
+
+<div class="card">
+  <h1>Calculadora de reservas</h1>
+  <p class="sub">Check-in Brasil</p>
+
+  <label for="checkin">Check-in</label>
+  <input type="date" id="checkin">
+
+  <label for="checkout">Check-out</label>
+  <input type="date" id="checkout">
+
+  <label for="price">Precio por noche (R$ o USD)</label>
+  <input type="number" id="price" placeholder="Ej: 250" min="0" step="0.01">
+
+  <label for="cleaning">Costo de limpieza (opcional)</label>
+  <input type="number" id="cleaning" placeholder="Ej: 80" min="0" step="0.01">
+
+  <div class="result empty" id="result">
+    <div class="nights">Cantidad de noches: <b id="nightsVal">—</b></div>
+    <div class="total-label">Total</div>
+    <div class="total" id="totalVal">Completá las fechas</div>
+  </div>
+
+  <div class="footer">Check-in Brasil · Florianópolis</div>
+</div>
+
+<script>
+  const checkinEl = document.getElementById('checkin');
+  const checkoutEl = document.getElementById('checkout');
+  const priceEl = document.getElementById('price');
+  const cleaningEl = document.getElementById('cleaning');
+  const resultEl = document.getElementById('result');
+  const nightsValEl = document.getElementById('nightsVal');
+  const totalValEl = document.getElementById('totalVal');
+
+  function calc(){
+    const ci = checkinEl.value;
+    const co = checkoutEl.value;
+    const price = parseFloat(priceEl.value);
+
+    if(!ci || !co){
+      resultEl.classList.add('empty');
+      nightsValEl.textContent = '—';
+      totalValEl.textContent = 'Completá las fechas';
+      return;
+    }
+
+    const d1 = new Date(ci + 'T00:00:00');
+    const d2 = new Date(co + 'T00:00:00');
+    const diffMs = d2 - d1;
+    const nights = Math.round(diffMs / (1000*60*60*24));
+
+    if(nights <= 0){
+      resultEl.classList.add('empty');
+      nightsValEl.textContent = '—';
+      totalValEl.textContent = 'El check-out debe ser después del check-in';
+      return;
+    }
+
+    resultEl.classList.remove('empty');
+    nightsValEl.textContent = nights + (nights === 1 ? ' noche' : ' noches');
+
+    if(!isNaN(price) && price > 0){
+      const cleaning = parseFloat(cleaningEl.value);
+      const cleaningFee = (!isNaN(cleaning) && cleaning > 0) ? cleaning : 0;
+      const total = (nights * price) + cleaningFee;
+      totalValEl.textContent = total.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2});
+    } else {
+      totalValEl.textContent = 'Ingresá el precio por noche';
+    }
+  }
+
+  checkinEl.addEventListener('input', calc);
+  checkoutEl.addEventListener('input', calc);
+  priceEl.addEventListener('input', calc);
+  cleaningEl.addEventListener('input', calc);
+</script>
+
+</body>
+</html>
